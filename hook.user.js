@@ -7,17 +7,174 @@
 
 console.log("Loading hook")
 
+//Sidebar
 var sidebarLambdaComponent =
-  ' \
-<li style="cursor:pointer"> \
+    ' \
+<li style="cursor:pointer" id="lambda_sideMenu"> \
     <a id="lambda"> \
         <div class="actidiv" style="margin-right:3px"></div> \
         <i style="-webkit-text-fill-color: white;-webkit-text-stroke-color: #704384;-webkit-text-stroke-width: 1.2px" class="fas fa-2x fa-bolt"></i> \
-        Lambda \
+        Executors \
     </a> \
 </li>';
-
 var fontAwesome = '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" crossorigin="anonymous">'
+
+//Policies template
+var policyForm =
+  '<form id="policyForm" class="form-horizontal m-5"><fieldset> \
+<div class="form-group"> \
+  <label class="col-md-4 control-label" for="in_endpoint">IN endpoint</label> \
+  <div class="col-md-8"> \
+  <input id="in_endpoint" name="in_endpoint" type="text" placeholder="" class="form-control input-md" required="" /> \
+  </div> \
+</div> \
+ \
+ <div class="form-group"> \
+ <label class="col-md-4 control-label" for="in_bucket">IN bucket</label> \
+ <div class="col-md-8"> \
+ <input id="in_bucket" name="in_bucket" type="text" placeholder="" class="form-control input-md" /> \
+ </div> \
+ </div> \
+ \
+ <div class="form-group"> \
+   <label class="col-md-4 control-label" for="in_path">IN path</label>  \
+   <div class="col-md-8"> \
+   <input id="in_bucket" name="in_path" type="text" placeholder="" class="form-control input-md" /> \
+   </div> \
+ </div> \
+ \
+<div class="form-group"> \
+  <label class="col-md-4 control-label" for="in_key">IN access key</label> \
+  <div class="col-md-8"> \
+  <input id="in_key" name="in_key" type="text" placeholder="" class="form-control input-md" /> \
+  </div> \
+</div> \
+ \
+<div class="form-group"> \
+  <label class="col-md-4 control-label" for="in_secret">IN secret key</label> \
+  <div class="col-md-8"> \
+  <input id="in_secret" name="in_secret" type="text" placeholder="" class="form-control input-md" /> \
+  </div> \
+</div> \
+ \
+<div class="form-group"> \
+  <label class="col-md-4 control-label" for="out_endpoint">OUT endpoint</label> \
+  <div class="col-md-8"> \
+  <input id="out_endpoint" name="out_endpoint" type="text" placeholder="" class="form-control input-md" /> \
+  </div> \
+</div> \
+ \
+<div class="form-group"> \
+  <label class="col-md-4 control-label" for="out_bucket">OUT bucket</label> \
+  <div class="col-md-8"> \
+  <input id="out_bucket" name="out_bucket" type="text" placeholder="" class="form-control input-md" /> \
+  </div> \
+</div> \
+ \
+<div class="form-group"> \
+  <label class="col-md-4 control-label" for="out_path">OUT path</label> \
+  <div class="col-md-8"> \
+  <input id="in_path" name="out_path" type="text" placeholder="/" class="form-control input-md" /> \
+  </div> \
+</div> \
+ \
+<div class="form-group"> \
+  <label class="col-md-4 control-label" for="out_key">OUT key</label> \
+  <div class="col-md-8"> \
+  <input id="out_key" name="out_key" type="text" placeholder="" class="form-control input-md" /> \
+  </div> \
+</div> \
+ \
+<div class="form-group"> \
+  <label class="col-md-4 control-label" for="out_secret">OUT secret</label> \
+  <div class="col-md-8"> \
+  <input id="out_secret" name="out_secret" type="text" placeholder="" class="form-control input-md" /> \
+  </div> \
+</div> \
+ \
+<div class="form-group"> \
+  <label class="col-md-4 control-label" for="rule_filter">Field filter</label> \
+  <div class="col-md-8"> \
+    <select id="rule_filter" name="rule_type" class="form-control"> \
+      <option value="regex">Regex</option> \
+      <option value="date">Date</option> \
+      <option value="size">Size</option> \
+    </select> \
+  </div> \
+</div> \
+ \
+<div class="form-group"> \
+  <label class="col-md-4 control-label" for="rule_compare_op">Compare operation</label> \
+  <div class="col-md-8"> \
+    <select id="rule_compare_op" name="rule_compare_op" class="form-control"> \
+      <option value="eq">==</option> \
+      <option value="gt">&gt;</option> \
+      <option value="ge">&gt;=</option> \
+      <option value="lt">&lt;</option> \
+      <option value="le">&lt;=</option> \
+      <option value="ne">not</option> \
+      <option value="cont">contains</option> \
+    </select> \
+  </div> \
+</div> \
+ \
+<div class="form-group"> \
+  <label class="col-md-4 control-label" for="rule_value">Match value</label> \
+  <div class="col-md-8"> \
+  <input id="rule_value" name="rule_value" type="text" placeholder="" class="form-control input-md" /> \
+  </div> \
+</div> \
+ \
+ <div class="form-group">\
+  <label class="col-md-4 control-label" for="parallelization">Parallelization</label>\
+  	<div class="col-md-4">\
+      <input type="checkbox" name="parallelization" id="parallelization">\
+  	</div>\
+</div>\
+\
+<div class="form-group"> \
+  <label class="col-md-4 control-label" for="operations">Operation type</label> \
+  <div class="col-md-8"> \
+    <select id="operations" name="operations" class="form-control"> \
+      <option value="move">Move</option> \
+      <option value="copy">Copy</option> \
+    </select> \
+  </div> \
+</div> \
+ \
+</fieldset>';
+
+var policyModal = '<div id="policyModal" class="modal fade" role="dialog">\
+	<div class="modal-dialog">\
+	<div class="modal-content">\
+		<div class="modal-header">\
+			<h4 class="modal-title">Add Bucket Policy</h4>\
+		</div>\
+		<div class="modal-body">\
+			'+ policyForm + '\
+		</div>\
+		<div class="modal-footer">\
+				<div class="form-group"> \
+					<div class="col-md-4" style="text-align:left"> \
+						<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>\
+					</div> \
+					<div class="col-md-8"> \
+						<label class="btn btn-default"> \
+							Import configuration \
+							<input name="import_config" type="file" class="hidden" hidden /> \
+						</label> \
+						<button type="submit" name="create" class="btn btn-primary">Create</button> \
+					</div> \
+				</div>\
+			</div>\
+		</div>\
+	</div>\
+</div>'
+
+var policyButton = '<td width="100"><button data-endpoint="beta.scalewaydata.com" data-bucket="BUCKET_NAME" class="policyBucketButton btn btn-default">Manage Policies</butto></td>'
+var globalPolicyButton = '<button  class="policyBucketButton btn btn-default">Add Policy</butto>'
+
+var policyHead = '<th></th>'
 
 var lambdaModal = '<div id="lambdaModal" class="modal fade" role="dialog">\
   <div class="modal-dialog">\
@@ -27,8 +184,8 @@ var lambdaModal = '<div id="lambdaModal" class="modal fade" role="dialog">\
         <h4 class="modal-title">Create lambda</h4>\
       </div>\
       <div class="modal-body">'
-+
-      '<div class="col-xs-12 col-sm-12 nopadding ng-scope">\
+    +
+    '<div class="col-xs-12 col-sm-12 nopadding ng-scope">\
           <div class="center">\
               <form>\
                 <div class="form-group">\
@@ -50,20 +207,21 @@ var lambdaModal = '<div id="lambdaModal" class="modal fade" role="dialog">\
                   <label for="exampleFormControlFile1">file input</label>\
                   <input type="file" class="form-control-file" id="file">\
                 </div>\
-                <button type="submit" class="btn btn-primary">Submit</button>\
               </form>\
           </div>\
       </div>'
-+
-      '</div>\
-      <div class="modal-footer">\
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>\
+    +
+    '</div>\
+	  <div class="modal-footer">\
+		  <div clas="col-md-12"> \
+		  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>\
+		  <button type="submit" class="btn btn-primary">Create</button>\
       </div>\
     </div>\
   </div>\
 </div>';
 
-var lambdaBodyStart ='\
+var lambdaBodyStart = '\
 <div class="col-xs-12 col-sm-12 nopadding ng-scope">\
   <div class="row page-header ng-scope">\
     <div class="col-md-8 nopadding">\
@@ -79,7 +237,7 @@ var lambdaBodyStart ='\
   <div class="row button-bar ng-scope">\
     <div class="col-md-8 nopadding"></div>\
     <div class="col-md-4 nopadding">\
-      <button id="create-lambda" class="btn btn-primary btn-xl pull-right ng-binding" data-toggle="modal" data-target="#lambdaModal" > Create lambda</button>\
+      <button id="create-lambda" class="btn btn-primary btn-xl pull-right ng-binding" data-toggle="modal" data-target="#lambdaModal"> Create lambda</button>\
     </div>\
   </div>\
   <div class="row ng-scope">\
@@ -91,7 +249,7 @@ var lambdaBodyStart ='\
         </thead>\
         <tbody class="ng-scope">';
 var lambdaBodyEnd =
-        '</tbody>\
+    '</tbody>\
       </table>\
     </div>\
   </div>\
@@ -111,64 +269,115 @@ function loadFont() {
 }
 
 
-function sideLambda() {
-    $(".nav.nav-main").append(sidebarLambdaComponent)
-    $("#lambda").click(function (e) {
+function lambdaInjector() {
+	$(".nav.nav-main").append(sidebarLambdaComponent)
+	$("body").append(lambdaModal);
+
+	$("#lambda").off("click.lambda").on("click.lambda", function (e) {
+		$("#lambda_sideMenu").toggleClass("active", true)
+        $(".nav.nav-main li.active").first().toggleClass("active", false)
         e.preventDefault();
         e.stopPropagation();
         window.history.pushState("", "", '/#/lambda');
-        $("div[ui-view='']").html(genLambdaBody(["name 1", "name 2", "name 3"]));
-        $("body").append(lambdaModal);
+		$("div[ui-view='']").html(genLambdaBody(["name 1", "name 2", "name 3"]));
+		lambdaFormHandler()
     })
+}
+
+
+
+function lambdaFormHandler() {
+
 }
 
 
 function init() {
     loadFont()
-    sideLambda()
+    lambdaInjector()
+	policiesInjector()
+    console.log("Hook complete")
+}
+
+var policiesInjector = function() {
+    $("body").append(policyModal);
     window.addEventListener('hashchange', function() {
         var currentState = $("html").injector().get("$state").current;
-        if(currentState.name == "files.list"){
+        $("#lambda_sideMenu").toggleClass("active", false)
+        if (currentState.name == "files.list") {
             injectPolicy();
         }
     });
-
-    console.log("Hook complete")
 }
+
 var injectPolicy = function(){
-    $("body").append(modal);
     $("thead.ng-scope tr").each(function(elem){
-        $(this).append(head);
+        $(this).append(policyHead);
     });
 
     setTimeout(function () {
+
+		$(".button-bar div:nth-child(2) > button:nth-child(1)").remove()
+        $(".button-bar div:nth-child(2) button:last-of-type").before(globalPolicyButton);
+
         $("tbody.ng-scope tr").each(function(){
-            $(this).find("td:last-of-type").before(button)
-        });
+			var bucket_name = $(this).find("td:first-of-type a").text()
+			$(this).find("td:last-of-type").before(policyButton.replace("BUCKET_NAME", bucket_name))
+			policyFormHandler()
+		});
+		
+        $(".policyBucketButton").click(function () {
+            var endpoint_name = $(this).data("endpoint")
+			var bucket_name = $(this).data("bucket");
+			$("#policyForm input").each(function () {
+				$(this).prop("checked", false)
+				$(this).val("")
+
+                if ($(this).attr("name") === "in_endpoint") {
+                    $(this).val(endpoint_name)
+				}
+
+                if ($(this).attr("name") === "in_bucket") {
+                    $(this).val(bucket_name)
+				}
+			})
+			$("#policyModal").modal('show');
+		})
     }, 1e3)
-
 }
-var form = ''
 
-var modal = '<div id="myModal" class="modal fade" role="dialog">\
-  <div class="modal-dialog">\
-    <!-- Modal content-->\
-    <div class="modal-content">\
-      <div class="modal-header">\
-        <h4 class="modal-title">Manage Policies</h4>\
-      </div>\
-      <div class="modal-body">\
-        '+ form +'\
-      </div>\
-      <div class="modal-footer">\
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>\
-      </div>\
-    </div>\
-  </div>\
-</div>'
+var policyFormHandler = function () {
+	$("#policyModal input[name=import_config]").off("change.formpI").on("change.formpI", function() {
+        var reader = new FileReader();
+        reader.onload = onReaderLoad;
+		reader.readAsText(this.files[0]);
+        function onReaderLoad(event) {
+            var obj = JSON.parse(event.target.result);
+            Object.keys(obj).forEach(function (key) {
+                console.log(typeof obj[key] === 'boolean')
+				if (typeof obj[key] === 'boolean') {
+					$("#policyForm input[name=" + key + "]").prop("checked", obj[key]);
+                    console.log($("#policyForm input[name=" + key + "]"))
+				} else {
+                    if ($("#policyForm input[name=" + key + "]").length > 0) {
+                        $("#policyForm input[name=" + key + "]").val(obj[key]).prop("checked", obj[key]);
+                    } else {
+                        $("#policyForm select[name=" + key + "]").val(obj[key]);
+					}
+				}
+			})
+        }
 
-var button = '<td width="100"><button data-toggle="modal" data-target="#myModal" class="btn btn-default">Manage Policies</button></td>'
+	})
+}
 
-var head = '<th></th>'
+var getTxt = function(uri) {
+    $.ajax({
+        url: uri,
+        success: function(data) {
+            fileContent = data;
+            return data
+        }
+    });
+}
 
 init()
