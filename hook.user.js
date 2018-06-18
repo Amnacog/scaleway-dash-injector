@@ -39,7 +39,7 @@ var policyForm =
  <div class="form-group"> \
    <label class="col-md-4 control-label" for="in_path">IN path</label>  \
    <div class="col-md-8"> \
-   <input id="in_bucket" name="in_path" type="text" placeholder="" class="form-control input-md" /> \
+   <input id="in_bucket" name="in_path" type="text" placeholder="/" class="form-control input-md" /> \
    </div> \
  </div> \
  \
@@ -128,7 +128,7 @@ var policyForm =
  <div class="form-group">\
   <label class="col-md-4 control-label" for="parallelization">Parallelization</label>\
   	<div class="col-md-4">\
-      <input type="checkbox" name="parallelization" id="parallelization">\
+      <input type="checkbox" name="parallelization" id="parallelization" value="true">\
   	</div>\
 </div>\
 \
@@ -163,7 +163,7 @@ var policyModal = '<div id="policyModal" class="modal fade" role="dialog">\
 							Import configuration \
 							<input name="import_config" type="file" class="hidden" hidden /> \
 						</label> \
-						<button type="submit" name="create" class="btn btn-primary">Create</button> \
+						<button name="create" class="btn btn-primary">Create</button> \
 					</div> \
 				</div>\
 			</div>\
@@ -290,14 +290,6 @@ function lambdaFormHandler() {
 
 }
 
-
-function init() {
-    loadFont()
-    lambdaInjector()
-	policiesInjector()
-    console.log("Hook complete")
-}
-
 var policiesInjector = function() {
     $("body").append(policyModal);
     window.addEventListener('hashchange', function() {
@@ -314,7 +306,12 @@ var injectPolicy = function(){
         $(this).append(policyHead);
     });
 
-    setTimeout(function () {
+    var int = setInterval(function () {
+        if ($(".loading.ng-hide").length === 0) {
+			return ;
+		}
+
+		clearInterval(int)
 
 		$(".button-bar div:nth-child(2) > button:nth-child(1)").remove()
         $(".button-bar div:nth-child(2) button:last-of-type").before(globalPolicyButton);
@@ -342,7 +339,7 @@ var injectPolicy = function(){
 			})
 			$("#policyModal").modal('show');
 		})
-    }, 1e3)
+    }, 5e2)
 }
 
 var policyFormHandler = function () {
@@ -366,8 +363,39 @@ var policyFormHandler = function () {
 				}
 			})
         }
-
 	})
+
+    $("#policyModal button[name=create]").off("click.create").on("click.create", function () {
+		var form = queryStringToJSON($("#policyForm").serialize())
+		delete form.parallelization
+    	form.parallelisation = $("#parallelization").is(':checked')
+
+		console.log(JSON.stringify(form))
+
+		$.ajax ({
+			type: "POST",
+			url: 'https://localhost/system/policy',
+			contentType: 'application/json',
+			data: JSON.stringify(form),
+			always: function() {
+				$("#policyModal").modal('hide');
+				toastr.success("Policy applied")
+			}
+		})
+	})
+}
+
+var queryStringToJSON = function (queryString) {
+    if (queryString.indexOf('?') > -1) {
+        queryString = queryString.split('?')[1];
+    }
+    var pairs = queryString.split('&');
+    var result = {};
+    pairs.forEach(function(pair) {
+        pair = pair.split('=');
+        result[pair[0]] = decodeURIComponent(pair[1] || '');
+    });
+    return result;
 }
 
 var getTxt = function(uri) {
@@ -379,5 +407,56 @@ var getTxt = function(uri) {
         }
     });
 }
+
+var toastrInjector = function() {
+    $.getScript("//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js", function () {
+		toastr.options.allowHtml = true,
+		toastr.options.autoDismiss = true,
+		toastr.options.closeButton = true,
+		toastr.options.closeHtml = "<button>&times;</button>",
+		toastr.options.containerId = "toast-container",
+		toastr.options.extendedTimeOut = 1e3,
+		toastr.options.closeMethod = 'fadeOut';
+		toastr.options.hideDuration = 1e3;
+        toastr.options.hideMethod = 'fadeOut';
+		toastr.options.closeDuration = 1e3;
+		toastr.options.iconClasses = {
+			error: "toast-error",
+			info: "toast-info",
+			success: "toast-success",
+			warning: "toast-warning"
+		};
+			
+		toastr.options.maxOpened = 0;
+		toastr.options.messageClass = "toast-message";
+		toastr.options.newestOnTop = !0;
+		toastr.options.onHidden = null;
+		toastr.options.onShown = null;
+		toastr.options.positionClass = "toast-top-right";
+		toastr.options.preventDuplicates = !1;
+		toastr.options.preventOpenDuplicates = !1;
+		toastr.options.progressBar = true;
+		toastr.options.tapToDismiss = true;
+		toastr.options.target = "body";
+		toastr.options.timeOut = 5e3;
+		toastr.options.titleClass = "toast-title";
+		toastr.options.toastClass = "toast";
+
+
+		toastr.success("Injection completed 😎")
+	})
+}
+
+
+function init() {
+    loadFont()
+    lambdaInjector()
+	policiesInjector()
+	toastrInjector()
+    $(".zone-menu > li > a").html('<div class="intl-tel-input"><img class="iti-flag hk"></div> hkg1')
+    $("li[ui-sref='service.list']").html("<b>Hackaton Developer Account</b>")
+    console.log("Hook complete")
+}
+
 
 init()
